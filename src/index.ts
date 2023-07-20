@@ -1,8 +1,8 @@
-import { credentials, loadPackageDefinition } from "@grpc/grpc-js";
-import { loadFileDescriptorSetFromBuffer } from "@grpc/proto-loader";
-import { ProtoGrpcType } from "@streamdal/plumber-schemas/types/ps_base";
-import { readFileSync } from "fs";
-
+import { credentials } from "@grpc/grpc-js";
+import {
+  ExternalClient,
+  IExternalClient,
+} from "@streamdal/snitch-protos/protos/external_api.grpc-client";
 export const hello = () => "Hello World!";
 
 enum Mode {
@@ -26,32 +26,32 @@ export const getConfigs = (): Config => ({
   wasmTimeout: `${process.env.DATAQUAL_WASM_TIMEOUT || 1}s`,
 });
 
-const buffer = readFileSync(
-  require.resolve("@streamdal/plumber-schemas/descriptor-sets/protos.fds")
-);
-const definition = loadFileDescriptorSetFromBuffer(buffer);
-
-const proto: ProtoGrpcType = loadPackageDefinition(
-  definition
-) as unknown as ProtoGrpcType;
-
-const plumberClient = new proto.protos.PlumberServer(
-  "0.0.0.0:9090",
-  credentials.createInsecure()
+const client: IExternalClient = new ExternalClient(
+  "http://localhost:9091",
+  credentials.createInsecure(),
+  {},
+  {}
 );
 
 const start = () => {
-  plumberClient.GetAllRelays(
-    {
-      auth: {
-        token: "streamdal",
-      },
-    },
-    (error, response) => {
-      error && console.info("relay errors", error);
-      console.log("relays", response);
+  const call = client.test({ input: "hello world" }, (err, value) => {
+    if (err) {
+      console.log("got err: ", err);
     }
-  );
+    if (value) {
+      console.log("got response message: ", value);
+    }
+  });
+
+  call.on("metadata", (arg1) => {
+    console.log("got response headers: ", arg1);
+  });
+
+  call.on("status", (arg1) => {
+    console.log("got status: ", arg1);
+  });
+
+  call.on("status", (status) => console.log("status", status));
 };
 
 start();

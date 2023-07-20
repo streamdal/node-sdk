@@ -1,7 +1,8 @@
 {
-  "name": "node-dataqual",
+  "name": "snitch-node-client",
+
   "version": "0.0.1",
-  "description": "Streamdal's Node Data Quality SDK",
+  "description": "Streamdal's Snitch Node Client",
   "keywords": [
     "typescript",
     "node",
@@ -12,13 +13,12 @@
     "build:main": "swc ./src -d ./build",
     "clean": "rimraf build coverage nyc_output",
     "cz": "cz",
-    "generate": "proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js --outDir=./src/gen protos/*.proto --includeDirs=./protos",
     "lint": "eslint src --ext .ts --fix",
     "prepare": "husky install",
     "semantic-release": "semantic-release",
     "setup": "tsx ./scripts/setup.ts",
     "spell:check": "cspell \"{README.md,CONTRIBUTING.md,.github/*.md,src/**/*.ts}\"",
-    "start": "tsnd --transpile-only --ignore-watch node_modules ./src/index.ts",
+    "start": "node --loader ts-node/esm src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
@@ -37,8 +37,9 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.8.17",
     "@grpc/proto-loader": "^0.7.7",
-    "@streamdal/plumber-schemas": "^1.0.1"
+    "@streamdal/snitch-protos": "^0.0.41"
   },
+  "type": "module",
   "devDependencies": {
     "@ryansonshine/commitizen": "^4.2.8",
     "@ryansonshine/cz-conventional-changelog": "^3.3.4",
