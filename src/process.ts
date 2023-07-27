@@ -111,22 +111,15 @@ const notifyStep = async (step: StepStatus) => {
   );
 };
 
-export const onSuccess = (step: EnhancedStep, stepStatus: StepStatus) => {
-  if (step.onSuccess.includes(PipelineStepCondition.NOTIFY)) {
+export const resultCondition = (
+  conditions: PipelineStepCondition[],
+  stepStatus: StepStatus
+) => {
+  if (conditions.includes(PipelineStepCondition.NOTIFY)) {
     void notifyStep(stepStatus);
   }
 
-  if (step.onSuccess.includes(PipelineStepCondition.ABORT)) {
-    stepStatus.abort = true;
-  }
-};
-
-export const onFailure = (step: EnhancedStep, stepStatus: StepStatus) => {
-  if (step.onFailure.includes(PipelineStepCondition.NOTIFY)) {
-    void notifyStep(stepStatus);
-  }
-
-  if (step.onFailure.includes(PipelineStepCondition.ABORT)) {
+  if (conditions.includes(PipelineStepCondition.ABORT)) {
     stepStatus.abort = true;
   }
 };
@@ -166,7 +159,10 @@ export const runStep = async ({
     stepStatus.abort = true;
   }
 
-  stepStatus.error ? onFailure(step, stepStatus) : onSuccess(step, stepStatus);
+  resultCondition(
+    stepStatus.error ? step.onFailure : step.onSuccess,
+    stepStatus
+  );
 
   return { data, stepStatuses: [...pipeline.stepStatuses, stepStatus] };
 };
