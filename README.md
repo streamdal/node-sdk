@@ -37,7 +37,7 @@ export const example = async () => {
   });
 
   console.log("snitch response");
-  console.dir(result);
+  console.dir(result, {depth: 20});
 };
 
 ```
