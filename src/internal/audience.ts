@@ -28,6 +28,7 @@ export const addAudience = async ({ configs, audience }: AddAudience) => {
     if (internalAudiences.has(audience)) {
       return;
     }
+    internalAudiences.add(audience);
     console.info("adding audience", audience);
     const { response } = await configs.grpcClient.newAudience(
       {
@@ -38,7 +39,7 @@ export const addAudience = async ({ configs, audience }: AddAudience) => {
     );
 
     if (response.code === ResponseCode.OK) {
-      internalAudiences.add(audience);
+      console.error("error adding audience", response.message);
     }
   } catch (error) {
     console.error("error adding audience", error);
