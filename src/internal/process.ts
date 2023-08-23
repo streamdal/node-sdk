@@ -162,7 +162,6 @@ export const runStep = async ({
     stepStatus.error = exitCode !== WASMExitCode.WASM_EXIT_CODE_SUCCESS;
     stepStatus.message = exitMsg;
   } catch (error: any) {
-    // console.log("shit error running wasm", error);
     stepStatus.error = true;
     stepStatus.message = error.toString();
     stepStatus.abort = true;
