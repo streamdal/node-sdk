@@ -1,4 +1,4 @@
-import { Audience } from "@streamdal/snitch-protos/protos/common.js";
+import { Audience } from "@streamdal/snitch-protos/protos/sp_common.js";
 
 import { OperationType, Snitch, SnitchConfigs } from "../snitch.js";
 

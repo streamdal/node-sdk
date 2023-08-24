@@ -1,6 +1,6 @@
-import { Audience } from "@streamdal/snitch-protos/protos/common.js";
-import { ClientType } from "@streamdal/snitch-protos/protos/info.js";
-import { IInternalClient } from "@streamdal/snitch-protos/protos/internal.client.js";
+import { Audience } from "@streamdal/snitch-protos/protos/sp_common.js";
+import { ClientType } from "@streamdal/snitch-protos/protos/sp_info.js";
+import { IInternalClient } from "@streamdal/snitch-protos/protos/sp_internal.client.js";
 import { v4 as uuidv4 } from "uuid";
 
 // import { version } from "../../package.json";

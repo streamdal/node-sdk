@@ -1,5 +1,5 @@
-import { ResponseCode } from "@streamdal/snitch-protos/protos/common.js";
-import { IInternalClient } from "@streamdal/snitch-protos/protos/internal.client.js";
+import { ResponseCode } from "@streamdal/snitch-protos/protos/sp_common.js";
+import { IInternalClient } from "@streamdal/snitch-protos/protos/sp_internal.client.js";
 
 import { sessionId } from "./register.js";
 
