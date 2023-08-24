@@ -2,6 +2,7 @@ import { Command } from "@streamdal/snitch-protos/protos/sp_command.js";
 import { InternalClient } from "@streamdal/snitch-protos/protos/sp_internal.client.js";
 import { Pipeline } from "@streamdal/snitch-protos/protos/sp_pipeline.js";
 import sinon from "sinon";
+import { v4 as uuidv4 } from "uuid";
 import { describe, expect, it } from "vitest";
 
 import { initPipelines, processResponse } from "../internal/pipeline.js";
@@ -11,6 +12,7 @@ const testConfigs = {
   grpcClient: {
     getAttachCommandsByService: () => ({ active: [], paused: [] }),
   } as unknown as InternalClient,
+  sessionId: uuidv4(),
   snitchUrl: "localhost:9091",
   snitchToken: "1234",
   serviceName: "test-service",

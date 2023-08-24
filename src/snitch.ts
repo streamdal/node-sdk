@@ -8,6 +8,7 @@ import {
   IInternalClient,
   InternalClient,
 } from "@streamdal/snitch-protos/protos/sp_internal.client.js";
+import { v4 as uuidv4 } from "uuid";
 
 import { addAudience, addAudiences } from "./internal/audience.js";
 import { heartbeat, HEARTBEAT_INTERVAL } from "./internal/heartbeat.js";
@@ -38,6 +39,7 @@ export interface Configs {
   pipelineTimeout: string;
   stepTimeout: string;
   dryRun: boolean;
+  sessionId: string;
   audiences?: Audience[];
 }
 
@@ -88,6 +90,7 @@ export class Snitch {
 
     this.configs = {
       grpcClient,
+      sessionId: uuidv4(),
       snitchUrl: url,
       snitchToken: token,
       serviceName: name,
