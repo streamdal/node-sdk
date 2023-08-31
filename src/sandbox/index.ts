@@ -95,10 +95,31 @@ const logTest = async (snitch: any, audience: Audience, input: any) => {
   console.log("\n");
 };
 
-export const example = async () => {
+// eslint-disable-next-line @typescript-eslint/require-await
+export const exampleStaggered = async () => {
   const snitchA = new Snitch(serviceAConfig);
   const snitchB = new Snitch(serviceBConfig);
 
+  setInterval(() => {
+    void logTest(snitchA, audienceAConsumer, exampleData);
+  }, 2000);
+
+  setTimeout(() => {
+    void logTest(snitchA, audienceAProducer, exampleData);
+  }, 4000);
+
+  setTimeout(() => {
+    void logTest(snitchB, audienceBConsumer, exampleData);
+  }, 8000);
+
+  setTimeout(() => {
+    void logTest(snitchB, audienceBProducer, exampleData);
+  }, 12000);
+};
+
+export const exampleConcurrent = async () => {
+  const snitchA = new Snitch(serviceAConfig);
+  const snitchB = new Snitch(serviceBConfig);
   setInterval(() => {
     void logTest(snitchA, audienceAConsumer, exampleData);
   }, 4000);
@@ -108,4 +129,4 @@ export const example = async () => {
   await logTest(snitchB, audienceBProducer, exampleData);
 };
 
-void example();
+void exampleStaggered();
