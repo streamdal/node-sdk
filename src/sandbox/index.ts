@@ -117,6 +117,7 @@ export const exampleStaggered = async () => {
   }, 12000);
 };
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export const exampleConcurrent = async () => {
   const snitchA = new Snitch(serviceAConfig);
   const snitchB = new Snitch(serviceBConfig);
@@ -124,9 +125,9 @@ export const exampleConcurrent = async () => {
     void logTest(snitchA, audienceAConsumer, exampleData);
   }, 4000);
 
-  await logTest(snitchA, audienceAProducer, exampleData);
-  await logTest(snitchB, audienceBConsumer, exampleData);
-  await logTest(snitchB, audienceBProducer, exampleData);
+  void logTest(snitchA, audienceAProducer, exampleData);
+  void logTest(snitchB, audienceBConsumer, exampleData);
+  void logTest(snitchB, audienceBProducer, exampleData);
 };
 
-void exampleStaggered();
+void exampleConcurrent();
