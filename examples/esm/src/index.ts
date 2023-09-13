@@ -5,6 +5,8 @@ import {
   SnitchConfigs,
 } from "@streamdal/snitch-node-client/snitch";
 
+import { SnitchResponse } from "../../../src/snitch.js";
+
 const exampleData = {
   boolean_t: true,
   boolean_f: false,
@@ -49,13 +51,22 @@ const audience: Audience = {
 
 export const example = async () => {
   const snitch = new Snitch(config);
-  const result = await snitch.processPipeline({
+  const result: SnitchResponse = await snitch.processPipeline({
     audience,
     data: new TextEncoder().encode(JSON.stringify(exampleData)),
   });
 
-  console.log("snitch response");
-  console.dir(result, { depth: 20 });
+  if (result.error) {
+    console.error("Pipeline error", result.message);
+    //
+    // Optionally explore more detailed step status information
+    console.dir(result.stepStatuses);
+  } else {
+    console.info("Pipeline success!");
+    //
+    // Process data, which may or may not have been altered depending on your pipeline
+    // doStuff(result.data);
+  }
 };
 
 void example();

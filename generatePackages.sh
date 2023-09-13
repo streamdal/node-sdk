@@ -1,6 +1,7 @@
 #/bin/sh
 
 cp README.md ./build/
+mkdir -p ./build
 rm -rf ./build/types/internal
 cp package.json ./build/package.json
 

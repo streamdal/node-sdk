@@ -53,8 +53,17 @@ export const example = async () => {
     data: new TextEncoder().encode(JSON.stringify(exampleData)),
   });
 
-  console.log("snitch response");
-  console.dir(result, { depth: 20 });
+  if (result.error) {
+    console.error("Pipeline error", result.message);
+    //
+    // Optionally explore more detailed step status information
+    console.dir(result.stepStatuses);
+  } else {
+    console.info("Pipeline success!");
+    //
+    // Process data, which may or may not have been altered depending on your pipeline
+    // doStuff(result.data);
+  }
 };
 
 void example();
