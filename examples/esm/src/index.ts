@@ -3,7 +3,7 @@ import {
   OperationType,
   Snitch,
   SnitchConfigs,
-} from "@streamdal/snitch-node-client/snitch.js";
+} from "@streamdal/snitch-node-client/snitch";
 
 const exampleData = {
   boolean_t: true,
