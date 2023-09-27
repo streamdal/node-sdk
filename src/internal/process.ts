@@ -1,7 +1,6 @@
 import { ClientStreamingCall } from "@protobuf-ts/runtime-rpc";
 import {
   Audience,
-  OperationType,
   StandardResponse,
   TailResponse,
   TailResponseType,
@@ -14,7 +13,7 @@ import {
 import { WASMExitCode } from "@streamdal/snitch-protos/protos/sp_wsm";
 
 import { SnitchRequest, SnitchResponse } from "../snitch.js";
-import { lock, metrics } from "./metrics.js";
+import { pipelineMetrics, stepMetrics } from "./metrics.js";
 import { EnhancedStep, InternalPipeline } from "./pipeline.js";
 import { audienceKey, internal, TailStatus } from "./register.js";
 import { runWasm } from "./wasm.js";
@@ -143,6 +142,8 @@ export const processPipeline = async ({
     }
   }
 
+  void pipelineMetrics(audience, data.length);
+
   tailStatus &&
     sendTail({
       configs,
@@ -187,53 +188,6 @@ export const resultCondition = (
   if (conditions.includes(PipelineStepCondition.ABORT)) {
     stepStatus.abort = true;
   }
-};
-
-export const stepMetrics = async (
-  audience: Audience,
-  stepStatus: StepStatus,
-  payloadSize: number
-  // eslint-disable-next-line @typescript-eslint/require-await
-) => {
-  lock.writeLock((release) => {
-    const opName =
-      audience.operationType === OperationType.CONSUMER ? "consume" : "produce";
-
-    stepStatus.error &&
-      metrics.push({
-        name: `counter_${opName}_errors`,
-        value: 1,
-        labels: {},
-        audience,
-      });
-
-    metrics.push({
-      name: `counter_${opName}_processed`,
-      value: 1,
-      labels: {},
-      audience,
-    });
-
-    metrics.push({
-      name: `counter_${opName}_bytes`,
-      value: payloadSize,
-      labels: {},
-      audience,
-    });
-    metrics.push({
-      name: `counter_${opName}_bytes_rate`,
-      value: 1,
-      labels: {},
-      audience,
-    });
-    metrics.push({
-      name: `counter_${opName}_bytes_processed`,
-      value: 1,
-      labels: {},
-      audience,
-    });
-    release();
-  });
 };
 
 export const runStep = async ({
