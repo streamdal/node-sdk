@@ -4,10 +4,7 @@ import ReadWriteLock from "rwlock";
 
 export const METRIC_INTERVAL = 1000;
 
-export const metrics: Metric[] = [
-  { name: "test", labels: { testLabelKey: "testLabelValue" }, value: 200 },
-];
-
+export const metrics: Metric[] = [];
 export const lock = new ReadWriteLock();
 
 export interface MetricsConfigs {
@@ -17,25 +14,28 @@ export interface MetricsConfigs {
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export const sendMetrics = async (configs: MetricsConfigs) => {
-  console.debug(`### sending metrics to grpc server...`);
   if (!metrics.length) {
     console.debug(`### no metrics found, skipping`);
+    return;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   lock.writeLock(async (release) => {
-    const call = configs.grpcClient.metrics(
-      {
-        metrics,
-      },
-      { meta: { "auth-token": configs.snitchToken } }
-    );
-    console.debug(`### metrics sent`);
+    try {
+      const call = configs.grpcClient.metrics(
+        {
+          metrics,
+        },
+        { meta: { "auth-token": configs.snitchToken } }
+      );
+      console.debug(`### metrics sent`, metrics);
 
-    //
-    // TODO: check status
-    await call.status;
-    metrics.length = 0;
+      const status = await call.status;
+      console.debug("metrics send status", status);
+      metrics.length = 0;
+    } catch (e) {
+      console.error("error sending metrics", e);
+    }
 
     release();
   });

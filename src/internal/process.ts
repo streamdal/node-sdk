@@ -1,6 +1,7 @@
 import { ClientStreamingCall } from "@protobuf-ts/runtime-rpc";
 import {
   Audience,
+  OperationType,
   StandardResponse,
   TailResponse,
   TailResponseType,
@@ -47,6 +48,8 @@ export interface TailRequest {
   originalData: Uint8Array;
   newData?: Uint8Array;
 }
+
+const MAX_PAYLOAD_SIZE = 1024 * 1024; // 1 megabyte
 
 //
 // add pipeline information to the steps so we can log/notify
@@ -126,7 +129,12 @@ export const processPipeline = async ({
       `running pipeline step ${step.pipelineName} - ${step.name}...`
     );
 
-    pipelineStatus = await runStep({ configs, step, pipeline: pipelineStatus });
+    pipelineStatus = await runStep({
+      audience,
+      configs,
+      step,
+      pipeline: pipelineStatus,
+    });
 
     console.debug(`pipeline step ${step.pipelineName} - ${step.name} complete`);
 
@@ -181,27 +189,60 @@ export const resultCondition = (
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export const stepMetrics = async (stepStatus: StepStatus) => {
+export const stepMetrics = async (
+  audience: Audience,
+  stepStatus: StepStatus,
+  payloadSize: number
+  // eslint-disable-next-line @typescript-eslint/require-await
+) => {
   lock.writeLock((release) => {
+    const opName =
+      audience.operationType === OperationType.CONSUMER ? "consume" : "produce";
+
+    stepStatus.error &&
+      metrics.push({
+        name: `counter_${opName}_errors`,
+        value: 1,
+        labels: {},
+        audience,
+      });
+
     metrics.push({
-      name: "Rule run",
+      name: `counter_${opName}_processed`,
       value: 1,
-      labels: {
-        pipeLineId: stepStatus.pipelineId,
-        stepName: stepStatus.stepName,
-        result: stepStatus.error ? "failure" : "success",
-      },
+      labels: {},
+      audience,
+    });
+
+    metrics.push({
+      name: `counter_${opName}_bytes`,
+      value: payloadSize,
+      labels: {},
+      audience,
+    });
+    metrics.push({
+      name: `counter_${opName}_bytes_rate`,
+      value: 1,
+      labels: {},
+      audience,
+    });
+    metrics.push({
+      name: `counter_${opName}_bytes_processed`,
+      value: 1,
+      labels: {},
+      audience,
     });
     release();
   });
 };
 
 export const runStep = async ({
+  audience,
   configs,
   step,
   pipeline,
 }: {
+  audience: Audience;
   configs: PipelineConfigs;
   step: EnhancedStep;
   pipeline: PipelinesStatus;
@@ -215,12 +256,20 @@ export const runStep = async ({
   };
 
   let data = pipeline.data;
+  const payloadSize = data.length;
 
   try {
-    const { outputPayload, exitCode, exitMsg } = await runWasm({
-      step,
-      data,
-    });
+    const { outputPayload, exitCode, exitMsg } =
+      payloadSize < MAX_PAYLOAD_SIZE
+        ? await runWasm({
+            step,
+            data,
+          })
+        : {
+            outputPayload: new Uint8Array(),
+            exitCode: WASMExitCode.WASM_EXIT_CODE_FAILURE,
+            exitMsg: "Payload exceeds maximum size",
+          };
 
     //
     // output gets passed back as data for the next function
@@ -239,7 +288,7 @@ export const runStep = async ({
     stepStatus.error ? step.onFailure : step.onSuccess,
     stepStatus
   );
-  void stepMetrics(stepStatus);
+  void stepMetrics(audience, stepStatus, payloadSize);
 
   return { data, stepStatuses: [...pipeline.stepStatuses, stepStatus] };
 };
