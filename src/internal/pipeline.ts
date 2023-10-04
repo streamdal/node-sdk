@@ -13,7 +13,7 @@ import {
 } from "@streamdal/snitch-protos/protos/sp_pipeline";
 
 import { Configs } from "../snitch.js";
-import { audienceKey, internal } from "./register.js";
+import { audienceKey, internal, TailStatus } from "./register.js";
 
 export type InternalPipeline = Pipeline & {
   paused?: boolean;
@@ -120,7 +120,15 @@ export const togglePausePipeline = (
 
 export const tailPipeline = (audience: Audience, { request }: TailCommand) => {
   console.debug("enabling tail", request);
-  internal.audiences.set(audienceKey(audience), {
+  // Create inner map if it doesn't exist
+  if (!internal.audiences.has(audienceKey(audience))) { // DONE
+    internal.audiences.set( // DONE
+      audienceKey(audience),
+      new Map<string, TailStatus>()
+    );
+  }
+  // Add entry (@JH, OK if overwritten?)
+  internal.audiences.get(audienceKey(audience))?.set(request.Id, { // DONE
     tail: request.type === TailRequestType.START,
     tailRequestId: request.Id,
   });

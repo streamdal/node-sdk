@@ -4,7 +4,7 @@ import {
 } from "@streamdal/snitch-protos/protos/sp_common";
 
 import { Configs } from "../snitch.js";
-import { audienceKey, internal } from "./register.js";
+import { audienceKey, internal, TailStatus } from "./register.js";
 
 export interface AddAudience {
   configs: Configs;
@@ -23,10 +23,13 @@ export const addAudiences = async (configs: Configs) => {
 
 export const addAudience = async ({ configs, audience }: AddAudience) => {
   try {
-    if (internal.audiences.has(audienceKey(audience))) {
+    if (internal.audiences.has(audienceKey(audience))) { // DONE
       return;
     }
-    internal.audiences.set(audienceKey(audience), {});
+    internal.audiences.set( // DONE
+      audienceKey(audience),
+      new Map<string, TailStatus>()
+    );
     const { response } = await configs.grpcClient.newAudience(
       {
         sessionId: configs.sessionId,
@@ -37,8 +40,10 @@ export const addAudience = async ({ configs, audience }: AddAudience) => {
 
     if (response.code !== ResponseCode.OK) {
       console.error("error adding audience", response.message);
+      // TODO: Should we clean up audience map here?
     }
   } catch (error) {
     console.error("error adding audience", error);
+    // TODO: Should we clean up audience map here?
   }
 };
