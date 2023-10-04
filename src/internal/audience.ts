@@ -23,10 +23,10 @@ export const addAudiences = async (configs: Configs) => {
 
 export const addAudience = async ({ configs, audience }: AddAudience) => {
   try {
-    if (internal.audiences.has(audienceKey(audience))) { // DONE
+    if (internal.audiences.has(audienceKey(audience))) {
       return;
     }
-    internal.audiences.set( // DONE
+    internal.audiences.set(
       audienceKey(audience),
       new Map<string, TailStatus>()
     );

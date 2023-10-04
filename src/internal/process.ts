@@ -95,7 +95,7 @@ export const processPipeline = async ({
 }: { configs: PipelineConfigs } & SnitchRequest): Promise<SnitchResponse> => {
   const key = audienceKey(audience);
   const pipeline = internal.pipelines.get(key);
-  const tails = internal.audiences.get(key); // DONE
+  const tails = internal.audiences.get(key);
 
   if (!pipeline || pipeline.paused) {
     const message =
