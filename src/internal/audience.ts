@@ -26,10 +26,6 @@ export const addAudience = async ({ configs, audience }: AddAudience) => {
     if (internal.audiences.has(audienceKey(audience))) {
       return;
     }
-    internal.audiences.set(
-      audienceKey(audience),
-      new Map<string, TailStatus>()
-    );
     const { response } = await configs.grpcClient.newAudience(
       {
         sessionId: configs.sessionId,
@@ -38,12 +34,15 @@ export const addAudience = async ({ configs, audience }: AddAudience) => {
       { meta: { "auth-token": configs.snitchToken } }
     );
 
-    if (response.code !== ResponseCode.OK) {
+    if (response.code === ResponseCode.OK) {
+      internal.audiences.set(
+        audienceKey(audience),
+        new Map<string, TailStatus>()
+      );
+    } else {
       console.error("error adding audience", response.message);
-      // TODO: Should we clean up audience map here?
     }
   } catch (error) {
     console.error("error adding audience", error);
-    // TODO: Should we clean up audience map here?
   }
 };
