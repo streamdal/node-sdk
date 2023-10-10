@@ -82,8 +82,6 @@ export const sendTail = ({
         });
         console.debug("sending tail response", tailResponse);
         await configs.tailCall.requests.send(tailResponse);
-        console.debug("done sending tail response");
-        await configs.tailCall.requests.complete();
 
         const headers = await configs.tailCall.headers;
         console.debug("got tail response headers: ", headers);
