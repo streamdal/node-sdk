@@ -454,4 +454,4 @@ export const exampleStaggeredMultipleComponentsPerServiceAndPerGroup =
     }, 2000);
   };
 
-void tailFriendly();
+void throughputFriendly();
