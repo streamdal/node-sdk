@@ -98,10 +98,8 @@ export const audienceMetrics = async (
   });
 };
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export const sendMetrics = async (configs: MetricsConfigs) =>
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  lock.writeLock(async (release) => {
+export const sendMetrics = (configs: MetricsConfigs) =>
+  lock.writeLock((release) => {
     try {
       if (!metrics.size) {
         console.debug(`### no metrics found, skipping`);
@@ -116,7 +114,7 @@ export const sendMetrics = async (configs: MetricsConfigs) =>
       }));
       console.debug("sending metrics", metricsData);
 
-      await configs.grpcClient.metrics(
+      void configs.grpcClient.metrics(
         {
           metrics: metricsData,
         },
