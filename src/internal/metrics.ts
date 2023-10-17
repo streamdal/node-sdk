@@ -7,7 +7,6 @@ import { IInternalClient } from "@streamdal/protos/protos/sp_internal.client";
 import ReadWriteLock from "rwlock";
 
 import { StepStatus } from "./process.js";
-import { internal } from "./register.js";
 
 export const METRIC_INTERVAL = 1000;
 
@@ -101,7 +100,8 @@ export const audienceMetrics = async (
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export const sendMetrics = async (configs: MetricsConfigs) =>
-  lock.writeLock((release) => {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  lock.writeLock(async (release) => {
     try {
       if (!metrics.size) {
         console.debug(`### no metrics found, skipping`);
@@ -116,7 +116,7 @@ export const sendMetrics = async (configs: MetricsConfigs) =>
       }));
       console.debug("sending metrics", metricsData);
 
-      void configs.grpcClient.metrics(
+      await configs.grpcClient.metrics(
         {
           metrics: metricsData,
         },

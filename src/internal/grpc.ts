@@ -7,14 +7,19 @@ import {
 
 export const GRPC_KEEPALIVE = 2000;
 
-export const client = (url: string): IInternalClient => {
-  const transport = new GrpcTransport({
-    host: url,
-    channelCredentials: ChannelCredentials.createInsecure(),
-    clientOptions: {
-      "grpc.keepalive_time_ms": GRPC_KEEPALIVE,
-    },
-  });
+export const client = (url: string): IInternalClient | null => {
+  try {
+    const transport = new GrpcTransport({
+      host: url,
+      channelCredentials: ChannelCredentials.createInsecure(),
+      clientOptions: {
+        "grpc.keepalive_time_ms": GRPC_KEEPALIVE,
+      },
+    });
 
-  return new InternalClient(transport) as IInternalClient;
+    return new InternalClient(transport) as IInternalClient;
+  } catch (error) {
+    console.error("shit transport error", error);
+  }
+  return null;
 };
