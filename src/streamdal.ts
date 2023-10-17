@@ -73,12 +73,6 @@ export class Streamdal {
     const sessionId = uuidv4();
     const grpcClient = client(url);
 
-    if (grpcClient == null) {
-      throw new Error(
-        "connection to the Streamdal server failed, is it running?"
-      );
-    }
-
     this.configs = {
       grpcClient,
       sessionId,
