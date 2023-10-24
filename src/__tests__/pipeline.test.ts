@@ -21,10 +21,6 @@ const testConfigs = {
       paused: [],
     }),
   } as unknown as InternalClient,
-  tailCall: {} as unknown as ClientStreamingCall<
-    TailResponse,
-    StandardResponse
-  >,
   sessionId: uuidv4(),
   streamdalUrl: "localhost:9090",
   streamdalToken: "1234",
