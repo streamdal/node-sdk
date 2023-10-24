@@ -1,9 +1,4 @@
-import { ClientStreamingCall } from "@protobuf-ts/runtime-rpc";
-import {
-  Audience,
-  StandardResponse,
-  TailResponse,
-} from "@streamdal/protos/protos/sp_common";
+import { Audience } from "@streamdal/protos/protos/sp_common";
 import { IInternalClient } from "@streamdal/protos/protos/sp_internal.client";
 import {
   PipelineStep,
