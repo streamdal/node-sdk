@@ -21,7 +21,7 @@ export const instantiateWasm = async (
   wasmFunction?: string
 ) => {
   if (!wasmId || !wasmBytes || !wasmFunction) {
-    console.debug("Qasm info missing, skipping instantiation, .");
+    console.debug("Wasm info missing, skipping instantiation, .");
     return;
   }
 
@@ -35,8 +35,7 @@ export const instantiateWasm = async (
   const instance: any = await WebAssembly.instantiate(wasm, importObject);
   const { exports } = instance;
   const { memory, alloc, [wasmFunction]: f } = exports;
-  const instantiated = { memory, alloc, f };
-  internal.wasmModules.set(wasmId, instantiated);
+  internal.wasmModules.set(wasmId, { memory, alloc, f });
 };
 
 export const readResponse = (pointer: number, buffer: Uint8Array) => {
@@ -82,8 +81,7 @@ export const runWasm = ({
   });
 
   const requestBytes = WASMRequest.toBinary(request);
-  const instantiated = internal.wasmModules.get(step.WasmId!);
-  const { memory, alloc, f } = instantiated;
+  const { memory, alloc, f } = internal.wasmModules.get(step.WasmId!);
 
   const ptr = alloc(requestBytes.length);
   const mem = new Uint8Array(memory.buffer, ptr, requestBytes.length);
