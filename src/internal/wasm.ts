@@ -4,6 +4,8 @@ import { WASMRequest, WASMResponse } from "@streamdal/protos/protos/sp_wsm";
 // eslint-disable-next-line import/no-unresolved
 import { WASI } from "wasi";
 
+import { internal } from "./register.js";
+
 const [nodeVersionMajor] = process.versions.node.split(".");
 
 const wasi = new WASI({
@@ -12,6 +14,30 @@ const wasi = new WASI({
     "/sandbox": "./",
   },
 } as any);
+
+export const instantiateWasm = async (
+  wasmId?: string,
+  wasmBytes?: Uint8Array,
+  wasmFunction?: string
+) => {
+  if (!wasmId || !wasmBytes || !wasmFunction) {
+    console.debug("Qasm info missing, skipping instantiation, .");
+    return;
+  }
+
+  if (internal.wasmModules.has(wasmId)) {
+    console.debug("Wasm exists, skipping instantiation");
+    return;
+  }
+
+  const wasm = await WebAssembly.compile(wasmBytes);
+  const importObject = { wasi_snapshot_preview1: wasi.wasiImport };
+  const instance: any = await WebAssembly.instantiate(wasm, importObject);
+  const { exports } = instance;
+  const { memory, alloc, [wasmFunction]: f } = exports;
+  const instantiated = { memory, alloc, f };
+  internal.wasmModules.set(wasmId, instantiated);
+};
 
 export const readResponse = (pointer: number, buffer: Uint8Array) => {
   let nullHits = 0;
@@ -38,23 +64,13 @@ export const readResponse = (pointer: number, buffer: Uint8Array) => {
   return new Uint8Array(data);
 };
 
-export const runWasm = async ({
+export const runWasm = ({
   step,
   data,
 }: {
   step: PipelineStep;
   data: Uint8Array;
 }) => {
-  if (!step.WasmBytes || !step.WasmFunction) {
-    throw Error(`No wasm function found for step ${step.name}`);
-  }
-
-  const wasm = await WebAssembly.compile(step.WasmBytes);
-  const importObject = { wasi_snapshot_preview1: wasi.wasiImport };
-  const instance: any = await WebAssembly.instantiate(wasm, importObject);
-  const { exports } = instance;
-  const { memory, alloc, [step.WasmFunction]: f } = exports;
-
   const request = WASMRequest.create({
     step: {
       name: step.name,
@@ -66,6 +82,8 @@ export const runWasm = async ({
   });
 
   const requestBytes = WASMRequest.toBinary(request);
+  const instantiated = internal.wasmModules.get(step.WasmId!);
+  const { memory, alloc, f } = instantiated;
 
   const ptr = alloc(requestBytes.length);
   const mem = new Uint8Array(memory.buffer, ptr, requestBytes.length);
