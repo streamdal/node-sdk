@@ -48,28 +48,24 @@ const audience: Audience = {
   operationName: "test-kafka-consumer",
 };
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export const example = async () => {
   const streamdal = new Streamdal(config);
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  setInterval(async () => {
-    const result: StreamdalResponse = await streamdal.processPipeline({
-      audience,
-      data: new TextEncoder().encode(JSON.stringify(exampleData)),
-    });
+  const result: StreamdalResponse = await streamdal.processPipeline({
+    audience,
+    data: new TextEncoder().encode(JSON.stringify(exampleData)),
+  });
 
-    if (result.error) {
-      console.error("Pipeline error", result.message);
-      //
-      // Optionally explore more detailed step status information
-      console.dir(result.stepStatuses);
-    } else {
-      console.info("Pipeline success!");
-      //
-      // Process data, which may or may not have been altered depending on your pipeline
-      // doStuff(result.data);
-    }
-  }, 1000);
+  if (result.error) {
+    console.error("Pipeline error", result.message);
+    //
+    // Optionally explore more detailed step status information
+    console.dir(result.stepStatuses);
+  } else {
+    console.info("Pipeline success!");
+    //
+    // Process data, which may or may not have been altered depending on your pipeline
+    // doStuff(result.data);
+  }
 };
 
 void example();
