@@ -37,13 +37,10 @@ export const instantiateWasm = async (
 };
 
 export const readResponse = (pointer: number, buffer: Uint8Array) => {
-  const resultPointer = pointer >> 32;
-  const resultSize = pointer;
-
   let nullHits = 0;
   const data = [];
 
-  for (let i = resultPointer; i < resultPointer + resultSize; i++) {
+  for (let i = pointer; i < buffer.length; i++) {
     //
     // Have three nulls in a row, can quit
     if (nullHits === 3) {
@@ -60,6 +57,7 @@ export const readResponse = (pointer: number, buffer: Uint8Array) => {
     nullHits = 0;
     data.push(buffer[i]);
   }
+
   return new Uint8Array(data);
 };
 
