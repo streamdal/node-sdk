@@ -40,13 +40,10 @@ export const readResponse = (pointer: bigint, buffer: Uint8Array): any => {
   //
   // Shift right by 32 bits to get the start value
   const start = Number(pointer >> BigInt(32));
-  console.debug("starting from:", start);
 
   //
   // Bitwise AND operation with 0xFFFFFFFF to get the length
   const length = Number(pointer & BigInt(0xffffffff));
-  console.debug("length:", length);
-
   return buffer.slice(start, start + length);
 };
 
@@ -66,12 +63,6 @@ export const runWasm = ({
     },
     inputPayload: data,
   });
-
-  console.debug("request", request);
-  console.debug(
-    "inputPayload payload",
-    new TextDecoder().decode(request.inputPayload)
-  );
 
   const { exports } = internal.wasmModules.get(step.WasmId!);
   const { memory, alloc, [step.WasmFunction!]: f } = exports;
