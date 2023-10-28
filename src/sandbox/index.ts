@@ -381,14 +381,4 @@ export const exampleStaggeredMultipleComponentsPerServiceAndPerGroup = () => {
   runPipeline(streamdalC, audienceCProducer, exampleData, 2000);
 };
 
-export const exampleShifting = () => {
-  const start = 1114624;
-  const length = 5;
-  const resultPtr = (BigInt(start) << BigInt(32)) | BigInt(length);
-  const pointerTrue = Number(resultPtr >> BigInt(32));
-  const lengthTrue = Number(resultPtr & BigInt(0xffffffff));
-  console.log("pointer true", pointerTrue);
-  console.log("length true", lengthTrue);
-};
-
 billingExample();
