@@ -115,20 +115,20 @@ export const randomPipelineAndData = (
 };
 
 export const billingExample = () => {
-  const billing = new Streamdal(serviceBillingConfig);
-  const signup = new Streamdal(serviceSignupConfig);
+  // const billing = new Streamdal(serviceBillingConfig);
+  // const signup = new Streamdal(serviceSignupConfig);
   const welcome = new Streamdal(serviceWelcomeConfig);
 
-  const bcData = loadData("./src/sandbox/assets/sample-billing-consumer.json");
-  const bpData = loadData("./src/sandbox/assets/sample-billing-producer.json");
-  const spData = loadData("./src/sandbox/assets/sample-signup-producer.json");
-  const sData = loadData("./src/sandbox/assets/sample.json");
+  // const bcData = loadData("./src/sandbox/assets/sample-billing-consumer.json");
+  // const bpData = loadData("./src/sandbox/assets/sample-billing-producer.json");
+  // const spData = loadData("./src/sandbox/assets/sample-signup-producer.json");
+  // const sData = loadData("./src/sandbox/assets/sample.json");
   const wpData = loadData("./src/sandbox/assets/sample-welcome-producer.json");
 
-  randomPipelineAndData(billing, billingConsumer, bcData);
-  randomPipelineAndData(billing, billingProducer, bpData);
-  randomPipelineAndData(signup, signupProducer, spData);
-  randomPipelineAndData(signup, signupProducer1, sData);
-  randomPipelineAndData(welcome, welcomeConsumer, sData);
+  // randomPipelineAndData(billing, billingConsumer, bcData);
+  // randomPipelineAndData(billing, billingProducer, bpData);
+  // randomPipelineAndData(signup, signupProducer, spData);
+  // randomPipelineAndData(signup, signupProducer1, sData);
+  // randomPipelineAndData(welcome, welcomeConsumer, sData);
   randomPipelineAndData(welcome, welcomeProducer, wpData);
 };
