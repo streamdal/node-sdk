@@ -3,7 +3,7 @@ import { Audience } from "@streamdal/protos/protos/sp_common";
 import { OperationType, Streamdal, StreamdalConfigs } from "../streamdal.js";
 import { billingExample } from "./billing.js";
 
-export const QUIET = true;
+export const QUIET = false;
 
 const exampleData = {
   boolean_t: true,
