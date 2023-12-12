@@ -56,9 +56,6 @@ export const readResponse = (pointer: bigint, buffer: Uint8Array): any => {
   return buffer.slice(start, start + length);
 };
 
-// export const writeResponse = (pointer: number, length: number): bigint =>
-//   (BigInt(pointer) << BigInt(32)) | BigInt(length);
-
 export const writeResponse = (pointer: number, length: number): bigint => {
   //
   // Left shift the pointer value by 32 bits
