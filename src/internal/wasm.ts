@@ -1,7 +1,4 @@
-import {
-  AbortCondition,
-  PipelineStep,
-} from "@streamdal/protos/protos/sp_pipeline";
+import { PipelineStep } from "@streamdal/protos/protos/sp_pipeline";
 import {
   InterStepResult,
   WASMExitCode,
