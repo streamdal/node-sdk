@@ -1,4 +1,7 @@
-import { PipelineStep } from "@streamdal/protos/protos/sp_pipeline";
+import {
+  AbortCondition,
+  PipelineStep,
+} from "@streamdal/protos/protos/sp_pipeline";
 import {
   InterStepResult,
   WASMExitCode,
@@ -86,12 +89,12 @@ export const runWasm = ({
     };
   }
 
-  console.log("running step");
-  console.dir(step, { depth: 20 });
-
   const request = WASMRequest.create({
     step: {
       name: step.name,
+      onTrue: step.onTrue,
+      onFalse: step.onFalse,
+      onError: step.onError,
       step: step.step,
       dynamic: step.dynamic,
     },
