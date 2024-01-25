@@ -14,23 +14,23 @@ const serviceBillingConfig: StreamdalConfigs = {
   dryRun: false,
 };
 
-const serviceSignupConfig: StreamdalConfigs = {
-  streamdalUrl: "localhost:8082",
-  streamdalToken: "1234",
-  serviceName: "signup-service",
-  pipelineTimeout: "100",
-  stepTimeout: "10",
-  dryRun: false,
-};
-
-const serviceWelcomeConfig: StreamdalConfigs = {
-  streamdalUrl: "localhost:8082",
-  streamdalToken: "1234",
-  serviceName: "welcome-service",
-  pipelineTimeout: "100",
-  stepTimeout: "10",
-  dryRun: false,
-};
+// const serviceSignupConfig: StreamdalConfigs = {
+//   streamdalUrl: "localhost:8082",
+//   streamdalToken: "1234",
+//   serviceName: "signup-service",
+//   pipelineTimeout: "100",
+//   stepTimeout: "10",
+//   dryRun: false,
+// };
+//
+// const serviceWelcomeConfig: StreamdalConfigs = {
+//   streamdalUrl: "localhost:8082",
+//   streamdalToken: "1234",
+//   serviceName: "welcome-service",
+//   pipelineTimeout: "100",
+//   stepTimeout: "10",
+//   dryRun: false,
+// };
 
 const billingConsumer: Audience = {
   serviceName: "billing-service",
@@ -39,40 +39,40 @@ const billingConsumer: Audience = {
   operationName: "processor",
 };
 
-const billingProducer: Audience = {
-  serviceName: "billing-service",
-  componentName: "stripe",
-  operationType: OperationType.PRODUCER,
-  operationName: "stripe-register",
-};
-
-const signupProducer: Audience = {
-  serviceName: "signup-service",
-  componentName: "kafka",
-  operationType: OperationType.PRODUCER,
-  operationName: "recorder",
-};
-
-const signupProducer1: Audience = {
-  serviceName: "signup-service",
-  componentName: "database",
-  operationType: OperationType.PRODUCER,
-  operationName: "verifier",
-};
-
-const welcomeConsumer: Audience = {
-  serviceName: "welcome-service",
-  componentName: "kafka",
-  operationType: OperationType.CONSUMER,
-  operationName: "reader",
-};
-
-const welcomeProducer: Audience = {
-  serviceName: "welcome-service",
-  componentName: "aws-ses",
-  operationType: OperationType.PRODUCER,
-  operationName: "emailer",
-};
+// const billingProducer: Audience = {
+//   serviceName: "billing-service",
+//   componentName: "stripe",
+//   operationType: OperationType.PRODUCER,
+//   operationName: "stripe-register",
+// };
+//
+// const signupProducer: Audience = {
+//   serviceName: "signup-service",
+//   componentName: "kafka",
+//   operationType: OperationType.PRODUCER,
+//   operationName: "recorder",
+// };
+//
+// const signupProducer1: Audience = {
+//   serviceName: "signup-service",
+//   componentName: "database",
+//   operationType: OperationType.PRODUCER,
+//   operationName: "verifier",
+// };
+//
+// const welcomeConsumer: Audience = {
+//   serviceName: "welcome-service",
+//   componentName: "kafka",
+//   operationType: OperationType.CONSUMER,
+//   operationName: "reader",
+// };
+//
+// const welcomeProducer: Audience = {
+//   serviceName: "welcome-service",
+//   componentName: "aws-ses",
+//   operationType: OperationType.PRODUCER,
+//   operationName: "emailer",
+// };
 
 const parseJson = (d: string): any => {
   try {
@@ -116,19 +116,19 @@ export const randomPipelineAndData = (
 
 export const billingExample = () => {
   const billing = new Streamdal(serviceBillingConfig);
-  const signup = new Streamdal(serviceSignupConfig);
-  const welcome = new Streamdal(serviceWelcomeConfig);
+  // const signup = new Streamdal(serviceSignupConfig);
+  // const welcome = new Streamdal(serviceWelcomeConfig);
 
   const bcData = loadData("./src/sandbox/assets/sample-billing-consumer.json");
-  const bpData = loadData("./src/sandbox/assets/sample-billing-producer.json");
-  const spData = loadData("./src/sandbox/assets/sample-signup-producer.json");
-  const sData = loadData("./src/sandbox/assets/sample.json");
-  const wpData = loadData("./src/sandbox/assets/sample-welcome-producer.json");
+  // const bpData = loadData("./src/sandbox/assets/sample-billing-producer.json");
+  // const spData = loadData("./src/sandbox/assets/sample-signup-producer.json");
+  // const sData = loadData("./src/sandbox/assets/sample.json");
+  // const wpData = loadData("./src/sandbox/assets/sample-welcome-producer.json");
 
   randomPipelineAndData(billing, billingConsumer, bcData);
-  randomPipelineAndData(billing, billingProducer, bpData);
-  randomPipelineAndData(signup, signupProducer, spData);
-  randomPipelineAndData(signup, signupProducer1, sData);
-  randomPipelineAndData(welcome, welcomeConsumer, sData);
-  randomPipelineAndData(welcome, welcomeProducer, wpData);
+  // randomPipelineAndData(billing, billingProducer, bpData);
+  // randomPipelineAndData(signup, signupProducer, spData);
+  // randomPipelineAndData(signup, signupProducer1, sData);
+  // randomPipelineAndData(welcome, welcomeConsumer, sData);
+  // randomPipelineAndData(welcome, welcomeProducer, wpData);
 };

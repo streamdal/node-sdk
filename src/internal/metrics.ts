@@ -4,7 +4,7 @@ import {
   OperationType,
 } from "@streamdal/protos/protos/sp_common";
 import { IInternalClient } from "@streamdal/protos/protos/sp_internal.client";
-import { StepStatus } from "@streamdal/protos/protos/sp_sdk";
+import { ExecStatus, StepStatus } from "@streamdal/protos/protos/sp_sdk";
 import ReadWriteLock from "rwlock";
 
 import { InternalPipeline } from "./pipeline.js";
@@ -51,7 +51,7 @@ export const stepMetrics = async ({
     const stepProcessedKey = `counter_${opName}_processed`;
     const stepBytesKey = `counter_${opName}_bytes`;
 
-    stepStatus.error &&
+    stepStatus.status === ExecStatus.ERROR &&
       metrics.set(stepErrorKey, {
         name: stepErrorKey,
         value: (metrics.get(stepErrorKey)?.value ?? 0) + 1,
