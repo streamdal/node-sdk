@@ -39,8 +39,7 @@ const testPipeline: Pipeline = {
   steps: [
     {
       name: "test-step",
-      onSuccess: [],
-      onFailure: [],
+      dynamic: true,
       step: {
         oneofKind: "detective",
         detective: { args: [], type: 1013, path: "object.field" },
