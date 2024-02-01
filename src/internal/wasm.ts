@@ -80,7 +80,7 @@ export const runWasm = ({
     return {
       outputStep: null,
       outputPayload: new Uint8Array(),
-      exitCode: WASMExitCode.WASM_EXIT_CODE_INTERNAL_ERROR,
+      exitCode: WASMExitCode.WASM_EXIT_CODE_ERROR,
       exitMsg: "Payload exceeds maximum size",
       interStepResult: undefined,
     };
@@ -89,8 +89,9 @@ export const runWasm = ({
   const request = WASMRequest.create({
     step: {
       name: step.name,
-      onSuccess: step.onSuccess,
-      onFailure: step.onFailure,
+      onTrue: step.onTrue,
+      onFalse: step.onFalse,
+      onError: step.onError,
       step: step.step,
       dynamic: step.dynamic,
     },

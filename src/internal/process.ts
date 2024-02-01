@@ -2,10 +2,11 @@ import { Audience } from "@streamdal/protos/protos/sp_common";
 import { IInternalClient } from "@streamdal/protos/protos/sp_internal.client";
 import {
   AbortCondition,
+  Pipeline,
   PipelineStep,
 } from "@streamdal/protos/protos/sp_pipeline";
 import {
-  AbortStatus,
+  ExecStatus,
   PipelineStatus,
   SDKResponse,
   StepStatus,
@@ -15,7 +16,7 @@ import { InterStepResult, WASMExitCode } from "@streamdal/protos/protos/sp_wsm";
 import { Configs, StreamdalRequest } from "../streamdal.js";
 import { addAudience } from "./audience.js";
 import { audienceMetrics, stepMetrics } from "./metrics.js";
-import { initPipelines, InternalPipeline } from "./pipeline.js";
+import { initPipelines } from "./pipeline.js";
 import { audienceKey, internal, Tail } from "./register.js";
 import { sendSchema } from "./schema.js";
 import { sendTail } from "./tail.js";
@@ -89,15 +90,14 @@ export const retryProcessPipelines = async ({
   } catch (e) {
     console.error("Error running process pipeline", e);
   }
-  const errorMessage =
+  const statusMessage =
     "Node SDK not registered with the server, skipping pipeline. Is the server running?";
-  console.error(errorMessage);
+  console.error(statusMessage);
   return Promise.resolve({
     data,
-    dropMessage: false,
+    status: ExecStatus.ERROR,
     pipelineStatus: [],
-    error: true,
-    errorMessage,
+    statusMessage,
     metadata: {},
   });
 };
@@ -111,7 +111,7 @@ export const processPipeline = ({
   originalData: Uint8Array;
   audience: Audience;
   configs: Configs;
-  pipeline: InternalPipeline;
+  pipeline: Pipeline;
 }): { pipelineStatus: PipelineStatus; data: Uint8Array } => {
   const pipelineStatus: PipelineStatus = {
     id: pipeline.id,
@@ -148,7 +148,9 @@ export const processPipeline = ({
     lastStepResult = interStepResult;
 
     if (
-      [AbortStatus.CURRENT, AbortStatus.ALL].includes(stepStatus.abortStatus)
+      [AbortCondition.ABORT_CURRENT, AbortCondition.ABORT_ALL].includes(
+        stepStatus.abortCondition
+      )
     ) {
       break;
     }
@@ -170,9 +172,9 @@ export const processPipelines = async ({
   void audienceMetrics(audience, data.length);
 
   if (!pipelines) {
-    const errorMessage =
-      "no active pipelines found for this audience, returning data";
-    console.debug(errorMessage);
+    const statusMessage =
+      "No active pipelines found for this audience, returning data";
+    console.debug(statusMessage);
 
     sendTail({
       configs,
@@ -182,8 +184,8 @@ export const processPipelines = async ({
 
     return {
       data,
-      error: true,
-      errorMessage,
+      status: ExecStatus.TRUE,
+      statusMessage,
       pipelineStatus: [],
       metadata: {},
     };
@@ -192,8 +194,8 @@ export const processPipelines = async ({
   const response: SDKResponse = {
     data,
     pipelineStatus: [],
-    error: false,
-    errorMessage: "",
+    status: ExecStatus.TRUE,
+    statusMessage: "",
     metadata: {},
   };
 
@@ -210,8 +212,8 @@ export const processPipelines = async ({
     response.data = data;
     response.pipelineStatus = [...response.pipelineStatus, pipelineStatus];
 
-    const lastStatus = pipelineStatus.stepStatus.at(-1)?.abortStatus;
-    if (lastStatus && [AbortStatus.ALL].includes(lastStatus)) {
+    const lastAbort = pipelineStatus.stepStatus.at(-1)?.abortCondition;
+    if (lastAbort && [AbortCondition.ABORT_ALL].includes(lastAbort)) {
       break;
     }
   }
@@ -227,15 +229,17 @@ export const processPipelines = async ({
 
   return Promise.resolve({
     ...response,
-    error: !!finalStatus?.error,
-    errorMessage: finalStatus?.errorMessage ?? "",
+    ...(finalStatus && {
+      status: finalStatus.status,
+      statusMessage: finalStatus.statusMessage,
+    }),
   });
 };
 
 const notifyStep = async (
   configs: PipelineConfigs,
   step: PipelineStep,
-  pipeline: InternalPipeline
+  pipeline: Pipeline
 ) => {
   console.debug("notifying error step", step.name);
   try {
@@ -252,6 +256,15 @@ const notifyStep = async (
   }
 };
 
+export const getStepStatus = (exitCode: WASMExitCode): ExecStatus =>
+  (exitCode === WASMExitCode.WASM_EXIT_CODE_TRUE
+    ? ExecStatus.TRUE
+    : exitCode === WASMExitCode.WASM_EXIT_CODE_FALSE
+    ? ExecStatus.FALSE
+    : exitCode === WASMExitCode.WASM_EXIT_CODE_ERROR
+    ? ExecStatus.ERROR
+    : ExecStatus.UNSET) as ExecStatus;
+
 export const resultCondition = ({
   configs,
   step,
@@ -260,26 +273,22 @@ export const resultCondition = ({
 }: {
   configs: PipelineConfigs;
   step: PipelineStep;
-  pipeline: InternalPipeline;
-  stepStatus: StepStatus & { exitCode: WASMExitCode };
+  pipeline: Pipeline;
+  stepStatus: StepStatus;
 }) => {
   const conditions =
-    stepStatus.exitCode === WASMExitCode.WASM_EXIT_CODE_INTERNAL_ERROR
-      ? step.onError
-      : stepStatus.exitCode === WASMExitCode.WASM_EXIT_CODE_SUCCESS
-      ? step.onSuccess
-      : step.onFailure;
+    stepStatus.status === ExecStatus.TRUE
+      ? step.onTrue
+      : stepStatus.status === ExecStatus.FALSE
+      ? step.onFalse
+      : step.onError;
 
   conditions?.notify && void notifyStep(configs, step, pipeline);
 
   //
   // TODO: clean up after abort consolidation PR is merged
-  stepStatus.abortStatus =
-    conditions?.abort === AbortCondition.ABORT_CURRENT
-      ? AbortStatus.CURRENT
-      : conditions?.abort === AbortCondition.ABORT_ALL
-      ? AbortStatus.ALL
-      : AbortStatus.UNSET;
+  stepStatus.abortCondition =
+    conditions && conditions.abort ? conditions.abort : AbortCondition.UNSET;
 };
 
 export const runStep = ({
@@ -294,19 +303,17 @@ export const runStep = ({
   audience: Audience;
   configs: PipelineConfigs;
   step: PipelineStep;
-  pipeline: InternalPipeline;
+  pipeline: Pipeline;
   lastStepResult?: InterStepResult;
 }): {
-  stepStatus: StepStatus & { exitCode: WASMExitCode };
+  stepStatus: StepStatus;
   data: Uint8Array;
   interStepResult?: InterStepResult;
 } => {
-  const stepStatus: StepStatus & { exitCode: WASMExitCode } = {
+  const stepStatus: StepStatus = {
     name: step.name,
-    error: false,
-    errorMessage: "",
-    abortStatus: AbortStatus.UNSET,
-    exitCode: WASMExitCode.WASM_EXIT_CODE_UNSET,
+    status: ExecStatus.TRUE,
+    abortCondition: AbortCondition.UNSET,
   };
 
   const payloadSize = originalData.length;
@@ -323,20 +330,20 @@ export const runStep = ({
 
     //
     // output gets passed back as data for the next function
-    const error = exitCode === WASMExitCode.WASM_EXIT_CODE_INTERNAL_ERROR;
-    data = error ? originalData : outputPayload;
-    stepStatus.error = error;
-    stepStatus.errorMessage = error ? exitMsg : "";
-    stepStatus.exitCode = exitCode;
+    stepStatus.status = getStepStatus(exitCode);
+    data =
+      stepStatus.status !== ExecStatus.ERROR ? originalData : outputPayload;
+
+    stepStatus.statusMessage = exitMsg;
     stepResult = interStepResult;
 
-    !error &&
+    stepStatus.status !== ExecStatus.ERROR &&
       step.name === "Infer Schema" &&
       void sendSchema({ configs, audience, schema: outputStep });
   } catch (error: any) {
     console.error(`error running pipeline step - ${step.name}`, error);
-    stepStatus.error = true;
-    stepStatus.errorMessage = error.toString();
+    stepStatus.status = ExecStatus.ERROR;
+    stepStatus.statusMessage = error.toString();
   }
 
   resultCondition({ configs, step, pipeline, stepStatus });
