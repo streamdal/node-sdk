@@ -77,21 +77,6 @@ export const buildPipeline = async (pipeline: Pipeline): Promise<Pipeline> => {
   };
 };
 
-export const attachPipeline = async (
-  audience: Audience,
-  pipeline: Pipeline
-) => {
-  const key = audienceKey(audience);
-  const existing = internal.pipelines.get(key);
-  const built = await buildPipeline(pipeline);
-  internal.pipelines.set(
-    key,
-    existing
-      ? existing.set(pipeline.id, built)
-      : new Map([[pipeline.id, built]])
-  );
-};
-
 export const setPipelines = async (
   audience: Audience,
   pipelines: Pipeline[]
@@ -102,9 +87,6 @@ export const setPipelines = async (
   );
   internal.pipelines.set(key, new Map<string, Pipeline>(mappedPipelines));
 };
-
-export const detachPipeline = (audience: Audience, pipelineId: string) =>
-  internal.pipelines.get(audienceKey(audience))?.delete(pipelineId);
 
 export const tailPipeline = (audience: Audience, { request }: TailCommand) => {
   console.debug("received a tail command for audience", audience);
