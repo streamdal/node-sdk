@@ -1,6 +1,6 @@
 import { Command } from "@streamdal/protos/protos/sp_command";
 import { InternalClient } from "@streamdal/protos/protos/sp_internal.client";
-import {  Pipeline } from "@streamdal/protos/protos/sp_pipeline";
+import { AbortCondition, Pipeline } from "@streamdal/protos/protos/sp_pipeline";
 import * as fs from "fs";
 import sinon from "sinon";
 import { v4 as uuidv4 } from "uuid";
@@ -73,7 +73,7 @@ const testPipeline: Pipeline = {
         oneofKind: "detective",
         detective: { args: [], type: 1001, path: "object.field", negate: false },
       },
-      // onTrue: { abort: AbortCondition.UNSET, notify: false, metadata: {testKey: "testValue"} },
+      onTrue: { abort: AbortCondition.UNSET, notify: false, metadata: {testKey: "testValue"} },
       WasmId: "testDetectiveWasm",
       WasmFunction: "f",
     },
