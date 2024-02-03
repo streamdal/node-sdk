@@ -354,8 +354,9 @@ export const runStep = ({
     //
     // output gets passed back as data for the next function
     stepStatus.status = getStepStatus(exitCode);
-    data =
-      stepStatus.status !== ExecStatus.ERROR ? originalData : outputPayload;
+    if (stepStatus.status !== ExecStatus.ERROR && outputPayload) {
+      data = outputPayload;
+    }
 
     stepStatus.statusMessage = exitMsg;
     stepResult = interStepResult;

@@ -4,7 +4,7 @@ import { ExecStatus } from "@streamdal/protos/protos/sp_sdk";
 import { OperationType, Streamdal, StreamdalConfigs } from "../streamdal.js";
 import { billingExample } from "./billing.js";
 
-export const QUIET = false;
+export const QUIET = true;
 
 const exampleData = {
   boolean_t: true,
