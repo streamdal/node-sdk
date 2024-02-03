@@ -89,9 +89,14 @@ export const runWasm = ({
   const request = WASMRequest.create({
     step: {
       name: step.name,
-      onTrue: step.onTrue,
-      onFalse: step.onFalse,
-      onError: step.onError,
+      // @DS 02.02.2024: Bandaid. Our Wasm modules do not access onTrue, onFalse
+      // or onError, so let's just leave them out for the time being.
+      //
+      // The only thing that uses the conditions is the SDK itself. 🤷
+      //
+      // onTrue: step.onTrue,
+      // onFalse: step.onFalse,
+      // onError: step.onError,
       step: step.step,
       dynamic: step.dynamic,
     },
