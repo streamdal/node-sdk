@@ -216,7 +216,7 @@ export const processPipelines = async ({
   };
 
   for (const pipeline of pipelines.values()) {
-    if (pipeline.name === "Schema Inference") {
+    if (pipeline.name.includes("Schema Inference")) {
       continue;
     }
     const { data, pipelineStatus } = processPipeline({
@@ -362,7 +362,7 @@ export const runStep = ({
     stepResult = interStepResult;
 
     stepStatus.status !== ExecStatus.ERROR &&
-      step.name === "Infer Schema" &&
+      step.name.includes("Infer Schema") &&
       void sendSchema({ configs, audience, schema: outputStep });
   } catch (error: any) {
     console.error(`error running pipeline step - ${step.name}`, error);
