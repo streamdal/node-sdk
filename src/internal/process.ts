@@ -216,9 +216,6 @@ export const processPipelines = async ({
   };
 
   for (const pipeline of pipelines.values()) {
-    if (pipeline.name.includes("Schema Inference")) {
-      continue;
-    }
     const { data, pipelineStatus } = processPipeline({
       originalData: response.data,
       audience,
