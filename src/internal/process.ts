@@ -29,6 +29,14 @@ export interface PipelineConfigs {
   dryRun: boolean;
 }
 
+export type EnhancedStepStatus = StepStatus & {
+  metadata: Record<string, string>;
+};
+
+export type EnchancedPipelineStatus = PipelineStatus & {
+  metadata: Record<string, string>;
+};
+
 export interface TailRequest {
   configs: PipelineConfigs;
   tails?: Map<string, Tail>;
@@ -112,11 +120,12 @@ export const processPipeline = ({
   audience: Audience;
   configs: Configs;
   pipeline: Pipeline;
-}): { pipelineStatus: PipelineStatus; data: Uint8Array } => {
-  const pipelineStatus: PipelineStatus = {
+}): { pipelineStatus: EnchancedPipelineStatus; data: Uint8Array } => {
+  const pipelineStatus: EnchancedPipelineStatus = {
     id: pipeline.id,
     name: pipeline.name,
     stepStatus: [],
+    metadata: {},
   };
   let data = originalData;
   let lastStepResult = undefined;
@@ -146,6 +155,13 @@ export const processPipeline = ({
     data = newData;
     pipelineStatus.stepStatus = [...pipelineStatus.stepStatus, stepStatus];
     lastStepResult = interStepResult;
+
+    if (Object.keys(stepStatus.metadata).length) {
+      pipelineStatus.metadata = {
+        ...pipelineStatus.metadata,
+        ...stepStatus.metadata,
+      };
+    }
 
     if (
       [AbortCondition.ABORT_CURRENT, AbortCondition.ABORT_ALL].includes(
@@ -212,6 +228,10 @@ export const processPipelines = async ({
     response.data = data;
     response.pipelineStatus = [...response.pipelineStatus, pipelineStatus];
 
+    if (Object.keys(pipelineStatus.metadata).length) {
+      response.metadata = { ...response.metadata, ...pipelineStatus.metadata };
+    }
+
     const lastAbort = pipelineStatus.stepStatus.at(-1)?.abortCondition;
     if (lastAbort && [AbortCondition.ABORT_ALL].includes(lastAbort)) {
       break;
@@ -274,7 +294,7 @@ export const resultCondition = ({
   configs: PipelineConfigs;
   step: PipelineStep;
   pipeline: Pipeline;
-  stepStatus: StepStatus;
+  stepStatus: EnhancedStepStatus;
 }) => {
   const conditions =
     stepStatus.status === ExecStatus.TRUE
@@ -285,8 +305,10 @@ export const resultCondition = ({
 
   conditions?.notify && void notifyStep(configs, step, pipeline);
 
-  //
-  // TODO: clean up after abort consolidation PR is merged
+  if (conditions?.metadata && Object.keys(conditions.metadata).length) {
+    stepStatus.metadata = { ...stepStatus.metadata, ...conditions.metadata };
+  }
+
   stepStatus.abortCondition =
     conditions && conditions.abort ? conditions.abort : AbortCondition.UNSET;
 };
@@ -306,14 +328,15 @@ export const runStep = ({
   pipeline: Pipeline;
   lastStepResult?: InterStepResult;
 }): {
-  stepStatus: StepStatus;
+  stepStatus: EnhancedStepStatus;
   data: Uint8Array;
   interStepResult?: InterStepResult;
 } => {
-  const stepStatus: StepStatus = {
+  const stepStatus: EnhancedStepStatus = {
     name: step.name,
     status: ExecStatus.TRUE,
     abortCondition: AbortCondition.UNSET,
+    metadata: {},
   };
 
   const payloadSize = originalData.length;
