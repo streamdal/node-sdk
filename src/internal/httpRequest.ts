@@ -13,7 +13,12 @@ export const httpRequest = async ({ step }: { step: PipelineStep }) => {
     headers: step.step.httpRequest.request.headers,
   });
 
-  const body = await response.json();
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    console.debug("could not parse http request response body");
+  }
 
   return {
     outputStep: null,
@@ -21,7 +26,7 @@ export const httpRequest = async ({ step }: { step: PipelineStep }) => {
     exitCode: response.ok
       ? WASMExitCode.WASM_EXIT_CODE_TRUE
       : WASMExitCode.WASM_EXIT_CODE_ERROR,
-    exitMsg: JSON.stringify(body),
+    ...(body ? { exitMsg: JSON.stringify(body) } : {}),
     interStepResult: undefined,
   };
 };
