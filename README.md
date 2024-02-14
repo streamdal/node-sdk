@@ -1,3 +1,6 @@
+
+# MOVED TO [github.com/streamdal/streamdal/sdks/node](https://github.com/streamdal/streamdal/tree/main/sdks/node)
+
 # Streamdal's Node SDK
 
 ## Getting started
